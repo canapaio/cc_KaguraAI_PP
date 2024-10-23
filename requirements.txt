@@ -1,0 +1,7 @@
+SQLAlchemy==2.0.20
+psycopg2-binary==2.9.9
+PyMySQL
+langchain-community
+beautifulsoup4
+requests
+langchain_experimental==0.0.60
