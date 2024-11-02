@@ -9,6 +9,7 @@ import os, re, copy
 #############################
 @hook
 def before_cat_sends_message(message, cat):
+    #ilmessage = message
     settings = cat.mad_hatter.get_plugin().load_settings()
     # Variabili
     kmp_f: str = settings["kpp_path"] + settings["kpp_mindprefix"] # File prefix mappa mentale
@@ -45,17 +46,12 @@ Personaggio di Kagura che sta pensando:
     {kre(klastmind)}
 </stato_mentale_dinamico_precedente>
 <Discussione>
-{kre(cat.stringify_chat_history(latest_n=4))}
+{kre(cat.stringify_chat_history(latest_n=6))}
 </Discussione>
 <prompt>
 {kmindprefix}
 </prompt>
 """
-#Sei Kagura e stai pensado: 
-#{kmindprefix}
-
-    #cat.send_chat_message(repr(kmindprefix))
-    #xyzk = kppdebug(kmindprefix)
 
     # Elaborazione mentale LLM
     log.info("======================================================")
@@ -64,7 +60,7 @@ Personaggio di Kagura che sta pensando:
 
     # chiamata ad un modello semplificato
     llm_tmp = copy.deepcopy(cat._llm)
-    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_S'])
+    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_s'])
     if alt_llm != '':
         llm_tmp.num_ctx = alt_llm
     alt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', settings['kpp_model_s'])
@@ -73,7 +69,7 @@ Personaggio di Kagura che sta pensando:
 
     kmind: str = (llm_tmp.invoke(kmindprefix).content)
 
-#debug
+#debug =========================
     if settings['kpp_debug']:
         cat.send_chat_message(kre(kmind))
     #xyzk = kppdebug(kmindprefix)
@@ -81,57 +77,8 @@ Personaggio di Kagura che sta pensando:
     # Salvataggio pensiero
     with open(kmr_f, 'w') as f:
         f.write(kmind)
-    return messagge
+    return 
 
-############################# Da riscrivere
-'''
-@hook
-def cat_recall_query(user_message, cat):
-    settings = cat.mad_hatter.get_plugin().load_settings()
-    #kpp_ctx_S = settiongs['']
-
-    kprompt = f"""
-Analizza la discussione contenuta in 'testo-da-analizzare' e genera una liste di parole chiavi congroue in italiano ed iglese seguendo le indicazioni contenute in 'regole':
-<regole>
-- Genera parole chiave in base al 'testo-da-analizzare' in italiano e inglese
-- Elenca tutti i termini specifici dal 'testo-da-analizzare'
-- Aggiungi chiavi non presenti che siano congrue con l'argomento
-- NON COMMENTARE L'ELENCO
-- Crea un elecon pulito privo di commenti
-</regole>
-
-<testo-da-analizzare>
-
-{kre(cat.stringify_chat_history(latest_n=10))}
-
-</testo-da-analizzare>
-PS (crea solo un elenco di parole chiave in base alla sezione 'testo-da-analizzare' usando le 'regole' come indicato sopra )
-
-"""
-
-    #CustomOllama = (base_url='http://192.168.10.10:11434', model='qwen2.5-coder:latest', num_ctx=1024, repeat_last_n=64, repeat_penalty=1.1, temperature=0.8)
-    # chiamata ad un modello semplificato
-    #log.info("======================================================")
-    #log.info(kprompt)
-    llm_tmp = copy.deepcopy(cat._llm)
-    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_S'])
-    if alt_llm != '':
-        llm_tmp.num_ctx = alt_llm
-    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', settings['kpp_model_s'])
-    if alt_llm != '':
-        llm_tmp.model = alt_llm
-    #cat.send_chat_message(repr(llm_tmp))
-    kpp_qwery = f"""
-{kre(llm_tmp.invoke(kprompt).content)}
-{kre(cat.stringify_chat_history(latest_n=4))}
-"""
-
-    #log.info("======================================================")
-    #log.info(kpp_qwery)
-    #log.info("======================================================")
-
-    return kpp_qwery
-'''
 
 @hook
 def agent_prompt_prefix(prefix: str, cat):
@@ -185,10 +132,13 @@ def agent_prompt_suffix(suffix, cat):
 """
 
     suffix += f"""
-    Date Time:{kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))}
     ALWAYS answer in {settings['language']}
 </Kagura_suffix>
+    Date Time:{kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))}
  """
+#debug =========================
+    if settings['kpp_debug']:
+        log.info(kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
     return suffix
 
 @hook
