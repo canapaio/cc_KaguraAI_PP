@@ -1,6 +1,5 @@
 from cat.mad_hatter.decorators import tool, hook, plugin
 from cat.factory.custom_llm import CustomOllama
-#from cat.factory.llm import LLMSettings
 from pydantic import BaseModel
 from datetime import datetime, date
 from cat.log import log
@@ -39,6 +38,10 @@ def before_cat_sends_message(message, cat):
         klastmind = "indaffarata"
 
     # elabora il prompt del prossimo pensiero
+
+    # eventuale dubug
+    debug_text = f"ALWAYS answer in {settings['language']}" if settings['kpp_debug'] else "ALWAYS answer in language you prefer"
+    #generazione promt
     kmindprefix = f"""
 Personaggio di Kagura che sta pensando:
 {prefix}
@@ -50,6 +53,7 @@ Personaggio di Kagura che sta pensando:
 </Discussione>
 <prompt>
 {kmindprefix}
+{debug_text}
 </prompt>
 """
 
@@ -99,6 +103,7 @@ def agent_prompt_prefix(prefix: str, cat):
     {kre(klastmind)}
   <stato_mentale_dinamico>
 </Kagura_prompt_prefix>
+<Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time> 
 """
 
     return prefix
@@ -134,7 +139,7 @@ def agent_prompt_suffix(suffix, cat):
     suffix += f"""
     ALWAYS answer in {settings['language']}
 </Kagura_suffix>
-    Date Time:{kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))}
+<Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time> 
  """
 #debug =========================
     if settings['kpp_debug']:

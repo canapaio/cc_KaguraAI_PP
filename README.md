@@ -1,4 +1,4 @@
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0002
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0005
 #
 # KaguraPP
 
@@ -20,8 +20,9 @@ Per usare KaguraAI ti serve ollama installato nel sistema, io uso il seguente pl
   Ti consiglio se hai poca VRam di usare l'embedder di ollama
     Ollama Embeddings Integration : https://github.com/pazoff/ollama-embeddings-integration
 
-Per personalizzare il prompt_prefix modificare: /plugins/cc_KaguraPP/promptprefix.txt
+Per personalizzare il prompt_prefix modificare: /plugins/cc_KaguraAI_PP/promptprefix.txt
 
-Per personalizzare il mind_prefix modificare: /plugins/cc_KaguraPP/mindprefix.txt
+Per personalizzare il mind_prefix modificare: /plugins/cc_KaguraAI_PP/mindprefix.txt
 
-Per spiare la mente di Kagura visualizzare: /plugins/cc_KaguraPP/klastmind.txt
+Per spiare la mente di Kagura visualizzare: /plugins/cc_KaguraAI_PP/klastmind.txt
+
