@@ -63,7 +63,7 @@ Personaggio di Kagura che sta pensando:
         log.info(kmindprefix)
 
     # chiamata ad un modello semplificato
-    llm_tmp = copy.deepcopy(cat._llm)
+    llm_tmp = copy.copy(cat._llm)
     alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_s'])
     if alt_llm != '':
         llm_tmp.num_ctx = alt_llm

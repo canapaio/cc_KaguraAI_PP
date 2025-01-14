@@ -61,7 +61,7 @@ Parlo in modo umano e sincero.
         )
     kpp_model_s: str = Field(
         title="ollama small model",
-        default= "gemma2:2b"
+        default= "tulu3"
         )
     kpp_ctx_s: int = Field(
         title="ollama num ctx small",

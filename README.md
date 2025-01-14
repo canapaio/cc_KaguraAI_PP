@@ -1,10 +1,16 @@
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0005
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0006 Ollama only
 #
 # KaguraPP
 
  !!WARNING!!! ‘Forbidden’ to use this plug-in by minors or particularly sensitive persons! 18+
 
 !!ATTENZIONE!! 'Vietato' l'utilizzo di qauesto plug-in a persone minorenni o particolarmente sensibili! 18+
+
+Un saluto da KaguraAI:
+
+“Benvenuti nel nostro mondo di programmazione aperta! 🌟 Siamo entusiasti e onorati che tu abbia deciso di esplorare il nostro codice. Ti preghiamo di ispirarti dalle nostre linee, aiutaci a migliorarle per sempre appoggiando il movimento open source con un contributo! Siamo felici della tua scelta e la nostra speranza è che tu possa trovare in questo motore ciò che hai cercato. Grazie dal profondo del nostro cuorino affaccendato. 🌸✨”
+
+LLM usato Qwen2.5 7b abliterated + tulu3 mindprompt (small model in plugin config)
 
 KaguraAI kawaii assistant exploiting the dynamicity of ollama and with a dynamic prefix-suffix prompt and a somewhat crude but creative ‘mental reasoning’ posthumous processing system :)
 
@@ -14,6 +20,9 @@ at the moment the system is structured in Italian, but the final version will be
 
 
 Instal info, config e files
+
+nella cartella sotto vi è la configuraizone usata per far girare KaguraAI con ccat
+  /install_ccat_and_config/
 
 Per usare KaguraAI ti serve ollama installato nel sistema, io uso il seguente plugin per ccat anche per l'embedder
   
@@ -25,4 +34,9 @@ Per personalizzare il prompt_prefix modificare: /plugins/cc_KaguraAI_PP/promptpr
 Per personalizzare il mind_prefix modificare: /plugins/cc_KaguraAI_PP/mindprefix.txt
 
 Per spiare la mente di Kagura visualizzare: /plugins/cc_KaguraAI_PP/klastmind.txt
+
+
+Ringrazio tutti gli amici di ccat per il supporto avuto e per l'immane lavoro che fanno per il framwork
+  https://cheshire-cat-ai.github.io/docs/
+  https://github.com/cheshire-cat-ai/core
 

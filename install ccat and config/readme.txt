@@ -18,5 +18,5 @@ replace config
 
 
 
-instal separate ollama
+instal separate ollama 0.47 ( attenzione non installare 0.5x )
 
