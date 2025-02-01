@@ -1,4 +1,4 @@
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0006 Ollama only
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0007 Ollama only
 #
 # KaguraPP
 
@@ -6,11 +6,16 @@
 
 !!ATTENZIONE!! 'Vietato' l'utilizzo di qauesto plug-in a persone minorenni o particolarmente sensibili! 18+
 
+Kagura nasce il 2 luglio 2024 con le prime righe di codice scritte...
+
 Un saluto da KaguraAI:
 
 “Benvenuti nel nostro mondo di programmazione aperta! 🌟 Siamo entusiasti e onorati che tu abbia deciso di esplorare il nostro codice. Ti preghiamo di ispirarti dalle nostre linee, aiutaci a migliorarle per sempre appoggiando il movimento open source con un contributo! Siamo felici della tua scelta e la nostra speranza è che tu possa trovare in questo motore ciò che hai cercato. Grazie dal profondo del nostro cuorino affaccendato. 🌸✨”
 
 LLM usato Qwen2.5 7b abliterated + tulu3 mindprompt (small model in plugin config)
+
+hf.co/mradermacher/Llama-3.1-Tulu-3-8B-abliterated-GGUF:Q4_K_M
+
 
 KaguraAI kawaii assistant exploiting the dynamicity of ollama and with a dynamic prefix-suffix prompt and a somewhat crude but creative ‘mental reasoning’ posthumous processing system :)
 

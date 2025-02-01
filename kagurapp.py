@@ -28,7 +28,7 @@ def before_cat_sends_message(message, cat):
         with open(kmp_f, 'r') as f:
             kmindprefix = f.read()
     else:
-        kmindprefix = "Sei Kagura: Crea una mappa mentale della situazione"
+        kmindprefix = "Sono Kagura: Creo una mappa mentale della mia situazione"
 
     # Carica il pensiero precedente
     if os.path.exists(kmr_f):
@@ -49,7 +49,7 @@ Personaggio di Kagura che sta pensando:
     {kre(klastmind)}
 </stato_mentale_dinamico_precedente>
 <Discussione>
-{kre(cat.stringify_chat_history(latest_n=6))}
+{kre(cat.stringify_chat_history(latest_n=9))}
 </Discussione>
 <prompt>
 {kmindprefix}
@@ -63,15 +63,16 @@ Personaggio di Kagura che sta pensando:
         log.info(kmindprefix)
 
     # chiamata ad un modello semplificato
-    llm_tmp = copy.copy(cat._llm)
-    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_s'])
-    if alt_llm != '':
-        llm_tmp.num_ctx = alt_llm
-    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', settings['kpp_model_s'])
-    if alt_llm != '':
-        llm_tmp.model = alt_llm
+#    llm_tmp = copy.copy(cat._llm)
+#    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_s'])
+#    if alt_llm != '':
+#        llm_tmp.num_ctx = alt_llm
+#    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', settings['kpp_model_s'])
+#    if alt_llm != '':
+#        llm_tmp.model = alt_llm
+#    kmind: str = (llm_tmp.invoke(kmindprefix).content)
 
-    kmind: str = (llm_tmp.invoke(kmindprefix).content)
+    kmind: str = kpp_catllm(settings['kpp_model_s'],kmindprefix,settings['kpp_ctx_s'],cat)
 
 #debug =========================
     if settings['kpp_debug']:
@@ -90,7 +91,13 @@ def agent_prompt_prefix(prefix: str, cat):
     k_ppf: str = settings["kpp_path"] + settings["kpp_file"]
     if os.path.exists(k_ppf):
         with open(k_ppf, 'r') as f:
-            prefix = "Sei Kagura: /n <Kagura_prompt_prefix>" + f.read()
+            prefix = f"""
+Sono Kagura (KaguraAI): interpreto il mio personaggio racchiuso in '<Kagura_prompt_prefix></Kagura_prompt_prefix>'
+    Rispondi SEMPRE in {settings['language']}
+
+<Kagura_prompt_prefix>
+            
+            """ + f.read()
     else:
         prefix = "Sei Kagura: /n <Kagura_prompt_prefix>" + settings["prompt_prefix"]
     # Carica il pensiero precedente
@@ -112,38 +119,41 @@ def agent_prompt_prefix(prefix: str, cat):
 def agent_prompt_suffix(suffix, cat):
     settings = cat.mad_hatter.get_plugin().load_settings()
 
-#    suffix = f"""
-#<Conversazione>
-#    {kre(cat.stringify_chat_history(latest_n=5))}
-#</conversaione>"""
+    suffix = """
+<Kagura_suffix>
 
-    suffix = """<Kagura_suffix>
-1. Da qui inizia l'oblio, (conversazioni passate e memoria richiamata dall'embedder) cerca di seguire il contesto e prendi in considerazione solo i dati utili alla discussione e alla tua personalità:
-2. La tag "Human" non identifica il mio interlocutore, se ho dubbi devo chiedere con chi sto parlando.
-3. La tag "AI" indica le mie parole precedenti (Io sono Kagura)    
-<oblio>
-    <memory>
-        <memory-past-conversations>
+    Da qui inizia l'oblio, (conversazioni passate e memoria richiamata dall'embedder) devo seguire il contesto della discussione e prendi in considerazione solo i dati utili alla conversazione
+    
+    <oblio_memory_embedder> I dati che stanno dentro questa sezione 'oblio_memory_embedder' sono dati presi dall'embedder e devo fare attenzione a come li uso
+        <memory>
+            <memory-past-conversations>
 {episodic_memory}
-        </memory-past-conversations>
-        <memory-from-documents>
+            </memory-past-conversations>
+            <memory-from-documents>
 {declarative_memory}
-        </memory-from-documents>
-        <memory-from-executed-actions>
+            </memory-from-documents>
+            <memory-from-executed-actions>
 {tools_output}
-        </memory-from-executed-actions>
-    </memory>
-</oblio>
-"""
+            </memory-from-executed-actions>
+        </memory>
+    </oblio_memory_embedder>"""
+
 
     suffix += f"""
-    ALWAYS answer in {settings['language']}
 </Kagura_suffix>
 <Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time> 
+
+     Sono Kagura (KaguraAI) e qui che inizia la nostra discussione facendo attenzione ai seguenti punti
+- Devo fare attenzione alla discussione e tutto quello che sta in '<oblio_memory_embedder></oblio_memory_embedder>' che sono dati presi dall'embedder e potenzialmente fuori tema
+- Devo seguire le linee guida delle mie personalità che stanno in '<Kagura_prompt_prefix></Kagura_prompt_prefix>' e agire di conseguenza
+- Nella discussione devo tenere una coversazione vivace con un pizzico di simpatia ed emoji per colorare la chat anche con osservazioni personali e curiosità inerenti al contesto, sono una tuttofare allegra e geniale
+
+Da qui inizia la nostra discussione e devo rispondere SEMPRE in {settings['language']}:
+
  """
-#debug =========================
-    if settings['kpp_debug']:
-        log.info(kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
+
+
+
     return suffix
 
 @hook
@@ -194,12 +204,16 @@ def kre(text: str) -> str:
     sostituzioni = [
         ('- AI', '- KaguraAI'),
         ('- Human', '- H'),
+        ('\[', '&#91;'),
+        ('\]', '&#93;'),
+        ('\|', '&#124;'),
         ('<', '&lt;'),
         ('>', '&gt;'),
         ('@', '&commat;'),
         ('{', '&#123;'),
         ('}', '&#125;')
     ]
+
     
     for old, new in sostituzioni:
         text = re.sub(old, new, text)
@@ -214,6 +228,23 @@ def kppdebug(text: str):
 
 
     return text
+
+def kpp_catllm(themodel: str, theprompt: str, thectx: int, cat) -> str:
+    Kllm_tmp = copy.copy(cat._llm)
+    Kalt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', thectx)
+    if Kalt_llm != '':
+        Kllm_tmp.num_ctx = Kalt_llm
+    Kalt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', themodel)
+    if Kalt_llm != '':
+        Kllm_tmp.model = Kalt_llm
+
+    krisposta: str = (Kllm_tmp.invoke(theprompt).content)
+
+    return krisposta
+
+#def k_prompt
+#    return
+
 
 
 

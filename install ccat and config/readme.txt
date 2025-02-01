@@ -5,7 +5,9 @@ Clone ccat
 > git clone https://github.com/cheshire-cat-ai/core.git
 
 
-edit /core/pyproject.toml
+## For ccat <= 1.7.1
+
+edit /core/pyproject.toml 
 
 > "huggingface-hub>=0.25.2",
 
@@ -18,5 +20,9 @@ replace config
 
 
 
-instal separate ollama 0.47 ( attenzione non installare 0.5x )
+installa separate ollama
+
+
+modello mentale consigliato
+ollama pull hf.co/mradermacher/Qwen2.5-7B-Instruct-1M-abliterated-GGUF:Q4_K_M
 

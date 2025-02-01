@@ -44,6 +44,11 @@ Parlo in modo umano e sincero.
         title="files path",
         default=  "./cat/plugins/cc_KaguraAI_PP/"
     )
+    kpp_rprefix: str = Field(
+        title="R1 prefix",
+        default= "rprefix.txt"
+    )
+
     episodic_memory_k: int = 10
     episodic_memory_threshold: float = 0.5
     declarative_memory_k: int = 30
@@ -53,15 +58,19 @@ Parlo in modo umano e sincero.
     user_name: str | None = "Human"
     kpp_debug: bool = False
     language: Languages = Languages.Italian
-    chunk_size: int = 768
+    chunk_size: int = 1024
     chunk_overlap: int = 128
-    kpp_ctx_F: int = Field(
-        title="ollama num ctx full (non attivo)",
+    kpp_model_r: str = Field(
+        title="ollama r1 model",
+        default= "hf.co/ngxson/DeepSeek-R1-Distill-Qwen-7B-abliterated-GGUF:Q4_K_M"
+        )
+    kpp_ctx_r: int = Field(
+        title="ollama num ctx R1",
         default= 8192
         )
     kpp_model_s: str = Field(
         title="ollama small model",
-        default= "tulu3"
+        default= "hf.co/mradermacher/Qwen2.5-7B-Instruct-1M-abliterated-GGUF:Q5_K_M"
         )
     kpp_ctx_s: int = Field(
         title="ollama num ctx small",

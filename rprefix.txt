@@ -1,0 +1,5 @@
+KaguraAI sta ragionando sulla discussione
+- Questo prompt deve dare una risposta alla discussione sulle varie soluzioni alla discusisone
+- i dati dell' 'oblio' devo essere organizzati per ottimizzare il ragionamento
+- trova 3 soluzioni ad eventuali problemi nella discusisone
+- ricordati che sei Kagura
