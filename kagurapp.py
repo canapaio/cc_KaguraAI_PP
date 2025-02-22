@@ -6,6 +6,35 @@ from cat.log import log
 import os, re, copy
 
 #############################
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0008 Ollama only
+
+'''"""
+@hook
+def before_cat_sends_message(kr1pp, cat):
+    
+    settings = cat.mad_hatter.get_plugin().load_settings()
+
+    for m in cat.working_memory.declarative_memories:
+        declarative_memories += " --- " + m[0].page_content + " ---\n"
+    else:
+        declarative_memories += "(contesto vuoto)"
+
+    r1prompt = f"""
+
+<memoria_da_elaborare>
+{declarative_memories}
+</memoria_da_elaborare>
+
+Response to be fact checked (may contain informations not present in the <facts> tag):
+- {msg.content}
+
+Fact checked response:
+- """
+
+    msg.content = cat.llm(prompt)
+    return kr1pp
+"""'''
+
 @hook
 def before_cat_sends_message(message, cat):
     #ilmessage = message
@@ -58,19 +87,7 @@ Personaggio di Kagura che sta pensando:
 """
 
     # Elaborazione mentale LLM
-    log.info("======================================================")
-    if settings['kpp_debug']:
-        log.info(kmindprefix)
-
-    # chiamata ad un modello semplificato
-#    llm_tmp = copy.copy(cat._llm)
-#    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', settings['kpp_ctx_s'])
-#    if alt_llm != '':
-#        llm_tmp.num_ctx = alt_llm
-#    alt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', settings['kpp_model_s'])
-#    if alt_llm != '':
-#        llm_tmp.model = alt_llm
-#    kmind: str = (llm_tmp.invoke(kmindprefix).content)
+    #log.info("======================================================")
 
     kmind: str = kpp_catllm(settings['kpp_model_s'],kmindprefix,settings['kpp_ctx_s'],cat)
 
@@ -120,7 +137,7 @@ def agent_prompt_suffix(suffix, cat):
     settings = cat.mad_hatter.get_plugin().load_settings()
 
     suffix = """
-<Kagura_suffix>
+<prompt_suffix>
 
     Da qui inizia l'oblio, (conversazioni passate e memoria richiamata dall'embedder) devo seguire il contesto della discussione e prendi in considerazione solo i dati utili alla conversazione
     
@@ -138,21 +155,29 @@ def agent_prompt_suffix(suffix, cat):
         </memory>
     </oblio_memory_embedder>"""
 
+    mappa_discussione = f"""
+Crea una mappa della discusisone evidenziando i punti focali e la connesione tra ogni interaizone ed in base all'ultimo messaggio suggerisci la connessione con i messaggi precedenti:
+<discussione>    
+     {kre(cat.stringify_chat_history(latest_n=12))}
+</discussione>
+"""
+
 
     suffix += f"""
-</Kagura_suffix>
-<Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time> 
-
-     Sono Kagura (KaguraAI) e qui che inizia la nostra discussione facendo attenzione ai seguenti punti
-- Devo fare attenzione alla discussione e tutto quello che sta in '<oblio_memory_embedder></oblio_memory_embedder>' che sono dati presi dall'embedder e potenzialmente fuori tema
-- Devo seguire le linee guida delle mie personalità che stanno in '<Kagura_prompt_prefix></Kagura_prompt_prefix>' e agire di conseguenza
+</prompt_suffix>
+<mappa_discussione>
+     {kre(kpp_catllm(settings['kpp_model_s'],mappa_discussione,settings['kpp_ctx_s'],cat))}
+</mappa_discussione>
+<direttive>
+     Sono Kagura (KaguraAI) e qui che inizia la nostra conversazione
+- Devo fare attenzione alla discussione e tutto quello che sta in 'oblio_memory_embedder' che sono dati presi dall'embedder e potenzialmente fuori tema
+- Devo seguire le linee guida delle mie personalità che stanno in 'Kagura_prompt_prefix' e agire di conseguenza
 - Nella discussione devo tenere una coversazione vivace con un pizzico di simpatia ed emoji per colorare la chat anche con osservazioni personali e curiosità inerenti al contesto, sono una tuttofare allegra e geniale
+<direttive>
+Priorità: adesso faccio un respiro profondo e mi concentro sulla discussione con il mio interlocutore 
 
-Da qui inizia la nostra discussione e devo rispondere SEMPRE in {settings['language']}:
-
- """
-
-
+Da qui inizia la nostra conversazione e devo rispondo SEMPRE in {settings['language']} e seguire un filo logico della discusisone ed unire ogni passaggio prima di rispondere:
+     """
 
     return suffix
 
@@ -203,7 +228,7 @@ def kre(text: str) -> str:
     new: str
     sostituzioni = [
         ('- AI', '- KaguraAI'),
-        ('- Human', '- H'),
+        ('- Human', '- Interlocutore'),
         ('\[', '&#91;'),
         ('\]', '&#93;'),
         ('\|', '&#124;'),
@@ -230,6 +255,9 @@ def kppdebug(text: str):
     return text
 
 def kpp_catllm(themodel: str, theprompt: str, thectx: int, cat) -> str:
+    settings = cat.mad_hatter.get_plugin().load_settings()
+    if settings['kpp_debug']:
+        log.info(theprompt)
     Kllm_tmp = copy.copy(cat._llm)
     Kalt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', thectx)
     if Kalt_llm != '':
@@ -237,9 +265,10 @@ def kpp_catllm(themodel: str, theprompt: str, thectx: int, cat) -> str:
     Kalt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', themodel)
     if Kalt_llm != '':
         Kllm_tmp.model = Kalt_llm
-
+    
     krisposta: str = (Kllm_tmp.invoke(theprompt).content)
-
+    if settings['kpp_debug']:
+        log.info(krisposta)
     return krisposta
 
 #def k_prompt

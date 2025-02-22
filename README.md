@@ -1,4 +1,4 @@
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0007 Ollama only
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0009 Ollama only
 #
 # KaguraPP
 
@@ -12,7 +12,7 @@ Un saluto da KaguraAI:
 
 “Benvenuti nel nostro mondo di programmazione aperta! 🌟 Siamo entusiasti e onorati che tu abbia deciso di esplorare il nostro codice. Ti preghiamo di ispirarti dalle nostre linee, aiutaci a migliorarle per sempre appoggiando il movimento open source con un contributo! Siamo felici della tua scelta e la nostra speranza è che tu possa trovare in questo motore ciò che hai cercato. Grazie dal profondo del nostro cuorino affaccendato. 🌸✨”
 
-LLM usato Qwen2.5 7b abliterated + tulu3 mindprompt (small model in plugin config)
+LLM usato Qwen2.5 7b 1M abliterated (small model in plugin config)
 
 hf.co/mradermacher/Llama-3.1-Tulu-3-8B-abliterated-GGUF:Q4_K_M
 
@@ -45,3 +45,4 @@ Ringrazio tutti gli amici di ccat per il supporto avuto e per l'immane lavoro ch
   https://cheshire-cat-ai.github.io/docs/
   https://github.com/cheshire-cat-ai/core
 
+0.0.2.0009 Aggiunta mamma discussione
