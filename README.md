@@ -45,4 +45,4 @@ Ringrazio tutti gli amici di ccat per il supporto avuto e per l'immane lavoro ch
   https://cheshire-cat-ai.github.io/docs/
   https://github.com/cheshire-cat-ai/core
 
-0.0.2.0009 Aggiunta mamma discussione
+0.0.2.0009 Aggiunta mappa discussione
