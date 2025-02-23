@@ -6,34 +6,7 @@ from cat.log import log
 import os, re, copy
 
 #############################
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0008 Ollama only
-
-'''"""
-@hook
-def before_cat_sends_message(kr1pp, cat):
-    
-    settings = cat.mad_hatter.get_plugin().load_settings()
-
-    for m in cat.working_memory.declarative_memories:
-        declarative_memories += " --- " + m[0].page_content + " ---\n"
-    else:
-        declarative_memories += "(contesto vuoto)"
-
-    r1prompt = f"""
-
-<memoria_da_elaborare>
-{declarative_memories}
-</memoria_da_elaborare>
-
-Response to be fact checked (may contain informations not present in the <facts> tag):
-- {msg.content}
-
-Fact checked response:
-- """
-
-    msg.content = cat.llm(prompt)
-    return kr1pp
-"""'''
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0010 Ollama only
 
 @hook
 def before_cat_sends_message(message, cat):
@@ -84,6 +57,7 @@ Personaggio di Kagura che sta pensando:
 {kmindprefix}
 {debug_text}
 </prompt>
+
 """
 
     # Elaborazione mentale LLM
@@ -105,6 +79,35 @@ Personaggio di Kagura che sta pensando:
 @hook
 def agent_prompt_prefix(prefix: str, cat):
     settings = cat.mad_hatter.get_plugin().load_settings()
+
+#    R1 step
+
+    memoria_chiamata = ""
+    if not cat.working_memory.declarative_memories:
+        memoria_chiamata += "(empty context)"
+    else:
+        for m in cat.working_memory.declarative_memories:
+            memoria_chiamata += " --- " + m[0].page_content + " ---\n"  
+
+
+    r1prompt = f"""
+Sei un assistente (agente) e di seguito vi sono i dati da elaborare che andranno ad una secondo llm:
+
+<memoria_da_elaborare>
+{memoria_chiamata}
+</memoria_da_elaborare>
+
+<Discussione>
+   {kre(cat.stringify_chat_history(latest_n=12))}
+</Discussione>
+
+Aiuta Kagua (KaguraAI) nella conversazione con l'utente analizzando la discussione e dai solozioni e suggerimenti ad eventuali problemi di logica, programmazione o argomenti complessi e riorganizza i dati della memoria di elaborazione in modo chiaro e semplice per essere letti da un llm:
+
+- """
+
+    r1message = kre(kpp_catllm(settings['kpp_model_r'],r1prompt,settings['kpp_ctx_r'],cat))
+
+
     k_ppf: str = settings["kpp_path"] + settings["kpp_file"]
     if os.path.exists(k_ppf):
         with open(k_ppf, 'r') as f:
@@ -128,7 +131,13 @@ Sono Kagura (KaguraAI): interpreto il mio personaggio racchiuso in '<Kagura_prom
   <stato_mentale_dinamico>
 </Kagura_prompt_prefix>
 <Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time> 
+<elaborazione_informazioni>
+     {r1message}
+</elaborazione_informazioni>
+
 """
+
+
 
     return prefix
 
@@ -155,19 +164,26 @@ def agent_prompt_suffix(suffix, cat):
         </memory>
     </oblio_memory_embedder>"""
 
+
+
     mappa_discussione = f"""
-Crea una mappa della discusisone evidenziando i punti focali e la connesione tra ogni interaizone ed in base all'ultimo messaggio suggerisci la connessione con i messaggi precedenti:
+Traccia un percorso chiaro all’interno della discussione identificando i temi principali e le corrispondenze tra gli argomenti, costruendo una narrazione coerente che collega ogni interazione. Partendo dal tuo ultimo messaggio, io estenderò questo quadro includendone la relazione con tutte le comunicazioni precedenti.
 <discussione>    
      {kre(cat.stringify_chat_history(latest_n=12))}
 </discussione>
 """
+# Crea una mappa della discusisone evidenziando i punti focali e la connesione tra ogni interaizone ed in base all'ultimo messaggio suggerisci la connessione con i messaggi precedenti:
+    la_mappa = kre(kpp_catllm(settings['kpp_model_s'],mappa_discussione,settings['kpp_ctx_s'],cat))
+
+
+
 
 
     suffix += f"""
-</prompt_suffix>
 <mappa_discussione>
-     {kre(kpp_catllm(settings['kpp_model_s'],mappa_discussione,settings['kpp_ctx_s'],cat))}
+     {la_mappa}
 </mappa_discussione>
+</prompt_suffix>
 <direttive>
      Sono Kagura (KaguraAI) e qui che inizia la nostra conversazione
 - Devo fare attenzione alla discussione e tutto quello che sta in 'oblio_memory_embedder' che sono dati presi dall'embedder e potenzialmente fuori tema
@@ -228,6 +244,8 @@ def kre(text: str) -> str:
     new: str
     sostituzioni = [
         ('- AI', '- KaguraAI'),
+        ('<think>', '&lt;Ragionamento&gt;'),
+        ('</think>', '&lt;/Ragionamento&gt;'),
         ('- Human', '- Interlocutore'),
         ('\[', '&#91;'),
         ('\]', '&#93;'),

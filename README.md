@@ -1,4 +1,4 @@
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0009 Ollama only
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0010 Ollama only
 #
 # KaguraPP
 
