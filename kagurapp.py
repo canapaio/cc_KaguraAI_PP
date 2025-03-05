@@ -6,16 +6,20 @@ from cat.log import log
 import os, re, copy
 
 #############################
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0010 Ollama only
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0013 Ollama only
 
 @hook
 def before_cat_sends_message(message, cat):
     #ilmessage = message
     settings = cat.mad_hatter.get_plugin().load_settings()
     # Variabili
-    kmp_f: str = settings["kpp_path"] + settings["kpp_mindprefix"] # File prefix mappa mentale
-    kmr_f: str = settings["kpp_path"] + "klastmind.txt" # File salvataggio mappa mentale
-    kpp_f: str = settings["kpp_path"] + settings["kpp_file"] # File promptprefix Kagura
+    if os.path.exists(settings["kpp_path"]):
+        kpp_path = settings["kpp_path"]
+    else:
+        kpp_path = "./cat/plugins/cc_KaguraAI_PP/"
+    kmp_f: str = kpp_path + settings["kpp_mindprefix"] # File prefix mappa mentale
+    kmr_f: str = kpp_path + "klastmind.txt" # File salvataggio mappa mentale
+    kpp_f: str = kpp_path + settings["kpp_file"] # File promptprefix Kagura
 
     #caricamento kagura prompt prefix
     if os.path.exists(kpp_f):
@@ -23,7 +27,6 @@ def before_cat_sends_message(message, cat):
             prefix = f.read()
     else:
         prefix = settings["prompt_prefix"]
-
 
     # Carica il prompt prefix di mindprefix
     if os.path.exists(kmp_f):
@@ -80,34 +83,6 @@ Personaggio di Kagura che sta pensando:
 def agent_prompt_prefix(prefix: str, cat):
     settings = cat.mad_hatter.get_plugin().load_settings()
 
-#    R1 step
-
-    memoria_chiamata = ""
-    if not cat.working_memory.declarative_memories:
-        memoria_chiamata += "(empty context)"
-    else:
-        for m in cat.working_memory.declarative_memories:
-            memoria_chiamata += " --- " + m[0].page_content + " ---\n"  
-
-
-    r1prompt = f"""
-Sei un assistente (agente) e di seguito vi sono i dati da elaborare che andranno ad una secondo llm:
-
-<memoria_da_elaborare>
-{memoria_chiamata}
-</memoria_da_elaborare>
-
-<Discussione>
-   {kre(cat.stringify_chat_history(latest_n=12))}
-</Discussione>
-
-Aiuta Kagua (KaguraAI) nella conversazione con l'utente analizzando la discussione e dai solozioni e suggerimenti ad eventuali problemi di logica, programmazione o argomenti complessi e riorganizza i dati della memoria di elaborazione in modo chiaro e semplice per essere letti da un llm:
-
-- """
-
-    r1message = kre(kpp_catllm(settings['kpp_model_r'],r1prompt,settings['kpp_ctx_r'],cat))
-
-
     k_ppf: str = settings["kpp_path"] + settings["kpp_file"]
     if os.path.exists(k_ppf):
         with open(k_ppf, 'r') as f:
@@ -121,29 +96,25 @@ Sono Kagura (KaguraAI): interpreto il mio personaggio racchiuso in '<Kagura_prom
     else:
         prefix = "Sei Kagura: /n <Kagura_prompt_prefix>" + settings["prompt_prefix"]
     # Carica il pensiero precedente
-    kmr_f: str = settings["kpp_path"] + "klastmind.txt"
+    kmr_f: str = "klastmind.txt"
     if os.path.exists(kmr_f):
         with open(kmr_f, 'r') as f:
             klastmind = f.read()
+
     prefix += f"""
   <stato_mentale_dinamico>
     {kre(klastmind)}
   <stato_mentale_dinamico>
 </Kagura_prompt_prefix>
-<Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time> 
-<elaborazione_informazioni>
-     {r1message}
-</elaborazione_informazioni>
-
-"""
-
-
+<Date_Time> {kre(datetime.now().strftime('%d-%m-%Y %H:%M:%S %Z-%z'))} </Date_Time>""" 
 
     return prefix
 
 @hook
 def agent_prompt_suffix(suffix, cat):
     settings = cat.mad_hatter.get_plugin().load_settings()
+
+
 
     suffix = """
 <prompt_suffix>
@@ -165,24 +136,50 @@ def agent_prompt_suffix(suffix, cat):
     </oblio_memory_embedder>"""
 
 
+#    R1 step
 
+    memoria_chiamata = ""
+    if not cat.working_memory.declarative_memories:
+        memoria_chiamata += "(empty context)"
+    else:
+        for m in cat.working_memory.declarative_memories:
+            memoria_chiamata += " --- " + m[0].page_content + " ---\n"  
+
+# Crea una mappa della discusisone evidenziando i punti focali e la connesione tra ogni interaizone ed in base all'ultimo messaggio suggerisci la connessione con i messaggi precedenti:
     mappa_discussione = f"""
 Traccia un percorso chiaro all’interno della discussione identificando i temi principali e le corrispondenze tra gli argomenti, costruendo una narrazione coerente che collega ogni interazione. Partendo dal tuo ultimo messaggio, io estenderò questo quadro includendone la relazione con tutte le comunicazioni precedenti.
 <discussione>    
-     {kre(cat.stringify_chat_history(latest_n=12))}
+    {kre(cat.stringify_chat_history(latest_n=12))}
 </discussione>
 """
-# Crea una mappa della discusisone evidenziando i punti focali e la connesione tra ogni interaizone ed in base all'ultimo messaggio suggerisci la connessione con i messaggi precedenti:
     la_mappa = kre(kpp_catllm(settings['kpp_model_s'],mappa_discussione,settings['kpp_ctx_s'],cat))
 
+#  Sezione R1
+    r1prompt = f"""
+Sei la parte logica di Kagura (KaguraAI) e di seguito vi sono i dati da elaborare che vengono inviati al processo cumunicativo della tua struttura mentale:
+Le informazioni seguenti sono in relazione alla disucssione pescate nel DB vettoriale:
+<memoria_da_elaborare>
+    {memoria_chiamata}
+</memoria_da_elaborare>
+Di seguito vi è la discussione tra te (KaguraAI) e l'utente:
+<Discussione>
+   {kre(cat.stringify_chat_history(latest_n=12))}
+</Discussione>
 
+Aiuta la tua sezione conversazionale con solozioni e suggerimenti a risolvere eventuali problemi di logica, 
+programmazione o argomenti complessi e riorganizza i dati della sezione memoria di elaborazione in modo chiaro e semplice per essere elaborati dalla tua parte conversazionale:
+"""
 
+    r1message = kre(kpp_catllm(settings['kpp_model_r'],r1prompt,settings['kpp_ctx_r'],cat))
 
 
     suffix += f"""
-<mappa_discussione>
-     {la_mappa}
-</mappa_discussione>
+    <elaborazione_informazioni>
+        {r1message}
+    </elaborazione_informazioni>
+    <mappa_discussione>
+        {la_mappa}
+    </mappa_discussione>
 </prompt_suffix>
 <direttive>
      Sono Kagura (KaguraAI) e qui che inizia la nostra conversazione
@@ -244,8 +241,8 @@ def kre(text: str) -> str:
     new: str
     sostituzioni = [
         ('- AI', '- KaguraAI'),
-        ('<think>', '&lt;Ragionamento&gt;'),
-        ('</think>', '&lt;/Ragionamento&gt;'),
+        ('<think>', '<Ragionamento>'),
+        ('</think>', '</Ragionamento>'),
         ('- Human', '- Interlocutore'),
         ('\[', '&#91;'),
         ('\]', '&#93;'),
@@ -268,25 +265,41 @@ def kppdebug(text: str):
     kdf_fq: str =  "./cat/plugins/cc_KaguraPP/kdebug.txt"
     with open(kdf_fq, 'w') as f:
         f.write(kre(text))
-
-
     return text
 
 def kpp_catllm(themodel: str, theprompt: str, thectx: int, cat) -> str:
     settings = cat.mad_hatter.get_plugin().load_settings()
-    if settings['kpp_debug']:
+    if settings.get('kpp_debug', False):
         log.info(theprompt)
-    Kllm_tmp = copy.copy(cat._llm)
-    Kalt_llm = cat.mad_hatter.get_plugin().load_settings().get('num_ctx', thectx)
-    if Kalt_llm != '':
-        Kllm_tmp.num_ctx = Kalt_llm
-    Kalt_llm = cat.mad_hatter.get_plugin().load_settings().get('model', themodel)
-    if Kalt_llm != '':
-        Kllm_tmp.model = Kalt_llm
     
-    krisposta: str = (Kllm_tmp.invoke(theprompt).content)
-    if settings['kpp_debug']:
+    # Crea una copia superficiale di cat._llm
+    Kllm_tmp = copy.copy(cat._llm)
+    
+    # Salva i valori originali degli attributi che vuoi modificare
+    original_model = getattr(Kllm_tmp, 'model', None)
+    original_ctx = getattr(Kllm_tmp, 'num_ctx', None)
+    
+    # Applica le nuove impostazioni solo se necessario
+    new_model = settings.get('model', themodel)
+    if new_model and new_model != '':
+        Kllm_tmp.model = new_model
+    
+    new_ctx = settings.get('num_ctx', thectx)
+    if new_ctx and new_ctx != '':
+        Kllm_tmp.num_ctx = new_ctx
+    
+    # Esegui l'invocazione
+    krisposta: str = Kllm_tmp.invoke(theprompt).content
+    
+    # Ripristina i valori originali nella copia (opzionale, per pulizia)
+    if original_model is not None:
+        Kllm_tmp.model = original_model
+    if original_ctx is not None:
+        Kllm_tmp.num_ctx = original_ctx
+    
+    if settings.get('kpp_debug', False):
         log.info(krisposta)
+    
     return krisposta
 
 #def k_prompt
