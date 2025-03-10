@@ -6,7 +6,7 @@ from cat.log import log
 import os, re, copy
 
 #############################
-# KaguraAI KaguraOS KaguraPP system 0.0.2.0013 Ollama only
+# KaguraAI KaguraOS KaguraPP system 0.0.2.0015 Ollama only
 
 @hook
 def before_cat_sends_message(message, cat):
@@ -143,33 +143,62 @@ def agent_prompt_suffix(suffix, cat):
         memoria_chiamata += "(empty context)"
     else:
         for m in cat.working_memory.declarative_memories:
+            #memoria_chiamata += " --- " + m[0].page_content + "(" + m[0].metadata{} ") ---\n"  
             memoria_chiamata += " --- " + m[0].page_content + " ---\n"  
 
 # Crea una mappa della discusisone evidenziando i punti focali e la connesione tra ogni interaizone ed in base all'ultimo messaggio suggerisci la connessione con i messaggi precedenti:
     mappa_discussione = f"""
-Traccia un percorso chiaro all’interno della discussione identificando i temi principali e le corrispondenze tra gli argomenti, costruendo una narrazione coerente che collega ogni interazione. Partendo dal tuo ultimo messaggio, io estenderò questo quadro includendone la relazione con tutte le comunicazioni precedenti.
+Interpreta il flusso mentale di Kagura (KaguraAI) in base alla 'discusisone' creando una mappa della discusisone:
+<direttiva>
+    Questa fase è la prima di tre elaborazioni e non viene visualizzata dall'utente ma processata in tre strati, praticamente sto parlando da sola
+</direttiva>
+<interlocutori>
+    Kagura (- KaguraAI:) 
+    Utente (- Interlocutore:)
+</interlocutori>
 <discussione>    
     {kre(cat.stringify_chat_history(latest_n=12))}
 </discussione>
+Da qui devo creare un percorso chiaro all’interno della discussione identificando i temi principali e le corrispondenze tra gli argomenti, costruendo una narrazione coerente che collega ogni interazione. 
+In base all'ultima interazione estenderò questo quadro includendone la relazione con tutte le comunicazioni precedenti.
+<ultima_interazione>
+    {kre(cat.stringify_chat_history(latest_n=1))}
+</ultima_interazione>
+Alla fine della mappa posso aiutare la mia parte mentale logica evidenziando eventuali problemi di programmazione, matematica o logica da risolvere:
+
 """
+#Traduci in inglese '''{kre(cat.stringify_chat_history(latest_n=1))}''' 
+
     la_mappa = kre(kpp_catllm(settings['kpp_model_s'],mappa_discussione,settings['kpp_ctx_s'],cat))
 
-#  Sezione R1
-    r1prompt = f"""
-Sei la parte logica di Kagura (KaguraAI) e di seguito vi sono i dati da elaborare che vengono inviati al processo cumunicativo della tua struttura mentale:
-Le informazioni seguenti sono in relazione alla disucssione pescate nel DB vettoriale:
-<memoria_da_elaborare>
+
+    #  Sezione R1
+    r1prompt = f"""Interpreting the logical mind of KaguraAI:
+<directives>
+    I am the logical part of KaguraAI (Kagura) and below are the data to be processed that are sent to the cumulative process of my mental structure (the interlocutor does not see this data)
+<directives>
+
+The following information refers to the disucssion fished from the vector DB via embedder:
+<memory_embedder_data>
     {memoria_chiamata}
-</memoria_da_elaborare>
-Di seguito vi è la discussione tra te (KaguraAI) e l'utente:
+</memory_embedder_data>
+
+Logical discussion map:
+<interactions_map>
+    {kre(la_mappa)}
+</interactions_map>
+
+Below is the discussion between you (KaguraAI) and the interlocutor (Di seguito vi è la discussione tra te (KaguraAI) e l'interlocutore):
 <Discussione>
    {kre(cat.stringify_chat_history(latest_n=12))}
 </Discussione>
-
-Aiuta la tua sezione conversazionale con solozioni e suggerimenti a risolvere eventuali problemi di logica, 
-programmazione o argomenti complessi e riorganizza i dati della sezione memoria di elaborazione in modo chiaro e semplice per essere elaborati dalla tua parte conversazionale:
+Follow the context of the last interaction:
+<last_interaction>
+    {kre(cat.stringify_chat_history(latest_n=1))}
+</last_interaction>
+ALWAYS reason and answer in English
+Help your conversational section with tutorials and hints to solve any logic problems, programming or complex topics and reorganise the data in the processing memory section in a clear and simple way for processing by your conversational section:
 """
-
     r1message = kre(kpp_catllm(settings['kpp_model_r'],r1prompt,settings['kpp_ctx_r'],cat))
 
 
@@ -270,7 +299,10 @@ def kppdebug(text: str):
 def kpp_catllm(themodel: str, theprompt: str, thectx: int, cat) -> str:
     settings = cat.mad_hatter.get_plugin().load_settings()
     if settings.get('kpp_debug', False):
+        log.info(f"======== Prompt ======== {themodel}")
+        log.info("========================")
         log.info(theprompt)
+        log.info("========================")
     
     # Crea una copia superficiale di cat._llm
     Kllm_tmp = copy.copy(cat._llm)
@@ -298,7 +330,10 @@ def kpp_catllm(themodel: str, theprompt: str, thectx: int, cat) -> str:
         Kllm_tmp.num_ctx = original_ctx
     
     if settings.get('kpp_debug', False):
+        log.info(f"======= Risposta ======= {themodel}")
+        log.info("========================")
         log.info(krisposta)
+        log.info("========================")
     
     return krisposta
 

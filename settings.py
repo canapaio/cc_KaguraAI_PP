@@ -3,6 +3,7 @@ from cat.mad_hatter.decorators import plugin
 from pydantic import BaseModel, Field, field_validator
 import os
 
+# KaguraAI 0.0.2.0015
 
 def validate_threshold(value):
     if value < 0 or value > 1:
